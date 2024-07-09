@@ -9,6 +9,7 @@
 
 int cadeirasOcupadas = 0;
 int clientesEsperando = 0;
+int podeEntrar = 0;
 
 time_t t;
 
@@ -44,6 +45,44 @@ void chegandoFila (void) {
 
 }
 
+void *comendo(void *arg){
+
+     pthread_mutex_lock(&mutexCadeiras);
+
+          while (cadeirasOcupadas < NR_DE_CADEIRAS)
+
+               pthread_cond_wait(&cadeirasLivres,&mutexCadeiras);
+
+     pthread_mutex_unlock(&mutexCadeiras);
+
+     //Chama um cliente
+
+     pthread_mutex_lock(&mutexEsperando);
+
+          podeEntrar = 1;
+
+     pthread_mutex_unlock(&mutexEsperando);
+
+     pthread_cond_signal(&entradaLiberada);
+
+     //Sentando na cadeira
+
+     sentarCadeira(*(int *)arg);
+
+     //Cliente come
+     comerSushi(*(int *)arg);
+
+     pthread_exit(NULL);
+
+}
+
+void *esperando(void *arg){
+
+}
+
+int main(){
+    
+}
 
 
 
