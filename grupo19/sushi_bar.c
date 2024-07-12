@@ -9,7 +9,8 @@
 
 int cadeirasOcupadas = 0;
 int clientesEsperando = 0;
-int podeEntrar = 0;
+int podeEntrar = 0; // 0 não pode entrar e 1 pode
+int clientesAtendidos = 0;
 
 time_t t;
 
@@ -47,36 +48,46 @@ void chegandoFila (void) {
 
 void *comendo(void *arg){
 
-     pthread_mutex_lock(&mutexCadeiras);
+     while (clientesAtendidos <= NR_DE_CLIENTES_NO_DIA){
 
-          while (cadeirasOcupadas < NR_DE_CADEIRAS)
+          pthread_mutex_lock(&mutexCadeiras);
 
-               pthread_cond_wait(&cadeirasLivres,&mutexCadeiras);
+               while (cadeirasOcupadas < NR_DE_CADEIRAS)
 
-     pthread_mutex_unlock(&mutexCadeiras);
+                    pthread_cond_wait(&cadeirasLivres,&mutexCadeiras);
 
-     //Chama um cliente
+          pthread_mutex_unlock(&mutexCadeiras);
 
-     pthread_mutex_lock(&mutexEsperando);
+          //Chama um cliente
 
-          podeEntrar = 1;
+          pthread_mutex_lock(&mutexEsperando);
 
-     pthread_mutex_unlock(&mutexEsperando);
+               podeEntrar = 1;
 
-     pthread_cond_signal(&entradaLiberada);
+          pthread_mutex_unlock(&mutexEsperando);
 
-     //Sentando na cadeira
+          pthread_cond_signal(&entradaLiberada);
 
-     sentarCadeira(*(int *)arg);
+          //Sentando na cadeira
 
-     //Cliente come
-     comerSushi(*(int *)arg);
+          sentarCadeira(*(int *)arg);
 
+          //Cliente come
+          comerSushi(*(int *)arg);
+          clientesAtendidos++;
+     }
      pthread_exit(NULL);
 
 }
 
 void *esperando(void *arg){
+     pthread_mutex_lock(&mutexCadeiras);
+     if (cadeirasOcupadas == NR_DE_CADEIRAS)
+     {
+          printf("Sou um cliente e estou entrando na fila!");
+          clientesEsperando++;
+     }
+     
 
 }
 
